@@ -102,6 +102,9 @@ const dataLatih = [
   { umur: 8, tinggi: 68, berat: 7.8, stunting: "Tidak" },
   { umur: 10, tinggi: 71, berat: 8.5, stunting: "Ya" },
   { umur: 12, tinggi: 74, berat: 9.1, stunting: "Ya" },
+];
+
+const dataUji = [
   { umur: 14, tinggi: 77, berat: 9.8, stunting: "Tidak" },
   { umur: 16, tinggi: 80, berat: 10.5, stunting: "Ya" },
   { umur: 18, tinggi: 83, berat: 11.2, stunting: "Ya" },
@@ -203,44 +206,324 @@ const dataLatih = [
   { umur: 3, tinggi: 55.9, berat: 4.9, stunting: "Ya" },
   { umur: 13, tinggi: 63.6, berat: 6.4, stunting: "Ya" },
   { umur: 25, tinggi: 76.1, berat: 9.1, stunting: "Ya" },
-  { umur: 47, tinggi: 88.1, berat: 12.2, stunting: "Ya" },
-  { umur: 34, tinggi: 75.5, berat: 8.7, stunting: "Ya" },
-  { umur: 44, tinggi: 77, berat: 10.7, stunting: "Ya" },
-  { umur: 52, tinggi: 91, berat: 13, stunting: "Ya" },
-  { umur: 2, tinggi: 73, berat: 8.3, stunting: "Ya" },
-  { umur: 43, tinggi: 85, berat: 12.4, stunting: "Ya" },
-  { umur: 38, tinggi: 86, berat: 9.9, stunting: "Ya" },
-  { umur: 27, tinggi: 78, berat: 10.6, stunting: "Ya" },
-  { umur: 28, tinggi: 80, berat: 12, stunting: "Ya" },
-  { umur: 56, tinggi: 91.5, berat: 14.5, stunting: "Ya" },
-  { umur: 25, tinggi: 74.3, berat: 11.3, stunting: "Ya" },
-  { umur: 45, tinggi: 88.7, berat: 12.1, stunting: "Ya" },
-  { umur: 52, tinggi: 92.4, berat: 14.2, stunting: "Ya" },
-  { umur: 46, tinggi: 88.1, berat: 12.7, stunting: "Ya" },
-  { umur: 8, tinggi: 63, berat: 7, stunting: "Ya" },
-  { umur: 3, tinggi: 51.7, berat: 5.7, stunting: "Ya" },
-  { umur: 33, tinggi: 80, berat: 11.4, stunting: "Ya" },
-  { umur: 27, tinggi: 78, berat: 11, stunting: "Ya" },
-  { umur: 42, tinggi: 87.5, berat: 12.3, stunting: "Ya" },
-  { umur: 39, tinggi: 85.9, berat: 11.9, stunting: "Ya" },
-  { umur: 22, tinggi: 74.6, berat: 8, stunting: "Ya" },
-  { umur: 9, tinggi: 66.1, berat: 7.3, stunting: "Ya" },
-  { umur: 6, tinggi: 56.5, berat: 7.4, stunting: "Ya" },
-  { umur: 16, tinggi: 69.2, berat: 7.5, stunting: "Ya" },
-  { umur: 30, tinggi: 80, berat: 11.8, stunting: "Ya" },
 ];
 
 const hitungProbabilitasStunting = (umur_, tinggi_, berat_) => {
-  const naiveBayes = new natural.BayesClassifier();
-  dataLatih.forEach((item) => {
-    const { umur, tinggi, berat, stunting } = item;
-    naiveBayes.addDocument(`${umur} ${tinggi} ${berat}`, stunting);
+  let persentDataLatih = 20;
+  let persentDataUji = 100;
+
+  let dataLatihBaru = dataLatih.slice(
+    0,
+    Math.round((persentDataLatih / 100) * dataLatih.length)
+  );
+  let dataUjiBaru = dataUji.slice(
+    0,
+    Math.round((persentDataUji / 100) * dataUji.length)
+  );
+
+  let gabungData = [...dataLatihBaru, ...dataUjiBaru];
+
+  let jumlahData = gabungData.length;
+  let jumlahDataTidak = 0;
+  let jumlahDataYa = 0;
+  let sumTidak = {
+    umur: 0,
+    tinggi: 0,
+    berat: 0,
+  };
+  let sumYa = {
+    umur: 0,
+    tinggi: 0,
+    berat: 0,
+  };
+  let standarDeviasiTidak = {
+    umur: 0,
+    tinggi: 0,
+    berat: 0,
+  };
+  let standarDeviasiYa = {
+    umur: 0,
+    tinggi: 0,
+    berat: 0,
+  };
+
+  gabungData.forEach((item) => {
+    const { stunting } = item;
+    if (stunting === "Tidak") {
+      jumlahDataTidak++;
+      sumTidak.umur += item.umur;
+      sumTidak.tinggi += item.tinggi;
+      sumTidak.berat += item.berat;
+    } else {
+      jumlahDataYa++;
+      sumYa.umur += item.umur;
+      sumYa.tinggi += item.tinggi;
+      sumYa.berat += item.berat;
+    }
   });
-  naiveBayes.train();
 
-  const hasil = naiveBayes.classify(`${umur_} ${tinggi_} ${berat_}`);
+  let probabilitasPriorTidak = jumlahDataTidak / jumlahData;
+  let probabilitasPriorYa = jumlahDataYa / jumlahData;
+  let meanTidak = {
+    umur: sumTidak.umur / jumlahDataTidak,
+    tinggi: sumTidak.tinggi / jumlahDataTidak,
+    berat: sumTidak.berat / jumlahDataTidak,
+  };
+  let meanYa = {
+    umur: sumYa.umur / jumlahDataYa,
+    tinggi: sumYa.tinggi / jumlahDataYa,
+    berat: sumYa.berat / jumlahDataYa,
+  };
 
+  gabungData.forEach((item) => {
+    const { stunting } = item;
+    if (stunting === "Tidak") {
+      standarDeviasiTidak.umur += Math.pow(item.umur - meanTidak.umur, 2);
+      standarDeviasiTidak.tinggi += Math.pow(item.tinggi - meanTidak.tinggi, 2);
+      standarDeviasiTidak.berat += Math.pow(item.berat - meanTidak.berat, 2);
+    } else {
+      standarDeviasiYa.umur += Math.pow(item.umur - meanYa.umur, 2);
+      standarDeviasiYa.tinggi += Math.pow(item.tinggi - meanYa.tinggi, 2);
+      standarDeviasiYa.berat += Math.pow(item.berat - meanYa.berat, 2);
+    }
+  });
+
+  standarDeviasiTidak.umur = Math.sqrt(
+    standarDeviasiTidak.umur / (jumlahDataTidak - 1)
+  );
+  standarDeviasiTidak.tinggi = Math.sqrt(
+    standarDeviasiTidak.tinggi / (jumlahDataTidak - 1)
+  );
+  standarDeviasiTidak.berat = Math.sqrt(
+    standarDeviasiTidak.berat / (jumlahDataTidak - 1)
+  );
+
+  standarDeviasiYa.umur = Math.sqrt(standarDeviasiYa.umur / (jumlahDataYa - 1));
+  standarDeviasiYa.tinggi = Math.sqrt(
+    standarDeviasiYa.tinggi / (jumlahDataYa - 1)
+  );
+  standarDeviasiYa.berat = Math.sqrt(
+    standarDeviasiYa.berat / (jumlahDataYa - 1)
+  );
+
+  let dataPrediksi = [];
+  let probabilitasTidak =
+    (1 / Math.sqrt(2 * Math.PI * standarDeviasiTidak.umur)) *
+    Math.exp(
+      -Math.pow(umur_ - meanTidak.umur, 2) /
+        (2 * Math.pow(standarDeviasiTidak.umur, 2))
+    ) *
+    (1 / Math.sqrt(2 * Math.PI * standarDeviasiTidak.tinggi)) *
+    Math.exp(
+      -Math.pow(tinggi_ - meanTidak.tinggi, 2) /
+        (2 * Math.pow(standarDeviasiTidak.tinggi, 2))
+    ) *
+    (1 / Math.sqrt(2 * Math.PI * standarDeviasiTidak.berat)) *
+    Math.exp(
+      -Math.pow(berat_ - meanTidak.berat, 2) /
+        (2 * Math.pow(standarDeviasiTidak.berat, 2))
+    ) *
+    probabilitasPriorTidak;
+
+  let probabilitasYa =
+    (1 / Math.sqrt(2 * Math.PI * standarDeviasiYa.umur)) *
+    Math.exp(
+      -Math.pow(umur_ - meanYa.umur, 2) /
+        (2 * Math.pow(standarDeviasiYa.umur, 2))
+    ) *
+    (1 / Math.sqrt(2 * Math.PI * standarDeviasiYa.tinggi)) *
+    Math.exp(
+      -Math.pow(tinggi_ - meanYa.tinggi, 2) /
+        (2 * Math.pow(standarDeviasiYa.tinggi, 2))
+    ) *
+    (1 / Math.sqrt(2 * Math.PI * standarDeviasiYa.berat)) *
+    Math.exp(
+      -Math.pow(berat_ - meanYa.berat, 2) /
+        (2 * Math.pow(standarDeviasiYa.berat, 2))
+    ) *
+    probabilitasPriorYa;
+
+  let hasil = probabilitasTidak > probabilitasYa ? "Tidak" : "Ya";
+  dataPrediksi.push({
+    umur_,
+    tinggi_,
+    berat_,
+    hasil,
+  });
+
+  // hitungManual();
   return hasil;
+};
+
+const hitungManual = async () => {
+  for (let i = 0; i < 5; i++) {
+    let persentDataLatih = 100 - 20 * i;
+    let persentDataUji = 20 * i + 20;
+
+    let dataLatihBaru = dataLatih.slice(
+      0,
+      Math.round((persentDataLatih / 100) * dataLatih.length)
+    );
+    let dataUjiBaru = dataUji.slice(
+      0,
+      Math.round((persentDataUji / 100) * dataUji.length)
+    );
+
+    let gabungData = [...dataLatihBaru, ...dataUjiBaru];
+
+    let jumlahData = gabungData.length;
+    let jumlahDataTidak = 0;
+    let jumlahDataYa = 0;
+    let sumTidak = {
+      umur: 0,
+      tinggi: 0,
+      berat: 0,
+    };
+    let sumYa = {
+      umur: 0,
+      tinggi: 0,
+      berat: 0,
+    };
+    let standarDeviasiTidak = {
+      umur: 0,
+      tinggi: 0,
+      berat: 0,
+    };
+    let standarDeviasiYa = {
+      umur: 0,
+      tinggi: 0,
+      berat: 0,
+    };
+
+    gabungData.forEach((item) => {
+      const { stunting } = item;
+      if (stunting === "Tidak") {
+        jumlahDataTidak++;
+        sumTidak.umur += item.umur;
+        sumTidak.tinggi += item.tinggi;
+        sumTidak.berat += item.berat;
+      } else {
+        jumlahDataYa++;
+        sumYa.umur += item.umur;
+        sumYa.tinggi += item.tinggi;
+        sumYa.berat += item.berat;
+      }
+    });
+
+    let probabilitasPriorTidak = jumlahDataTidak / jumlahData;
+    let probabilitasPriorYa = jumlahDataYa / jumlahData;
+    let meanTidak = {
+      umur: sumTidak.umur / jumlahDataTidak,
+      tinggi: sumTidak.tinggi / jumlahDataTidak,
+      berat: sumTidak.berat / jumlahDataTidak,
+    };
+    let meanYa = {
+      umur: sumYa.umur / jumlahDataYa,
+      tinggi: sumYa.tinggi / jumlahDataYa,
+      berat: sumYa.berat / jumlahDataYa,
+    };
+
+    gabungData.forEach((item) => {
+      const { stunting } = item;
+      if (stunting === "Tidak") {
+        standarDeviasiTidak.umur += Math.pow(item.umur - meanTidak.umur, 2);
+        standarDeviasiTidak.tinggi += Math.pow(
+          item.tinggi - meanTidak.tinggi,
+          2
+        );
+        standarDeviasiTidak.berat += Math.pow(item.berat - meanTidak.berat, 2);
+      } else {
+        standarDeviasiYa.umur += Math.pow(item.umur - meanYa.umur, 2);
+        standarDeviasiYa.tinggi += Math.pow(item.tinggi - meanYa.tinggi, 2);
+        standarDeviasiYa.berat += Math.pow(item.berat - meanYa.berat, 2);
+      }
+    });
+
+    standarDeviasiTidak.umur = Math.sqrt(
+      standarDeviasiTidak.umur / (jumlahDataTidak - 1)
+    );
+    standarDeviasiTidak.tinggi = Math.sqrt(
+      standarDeviasiTidak.tinggi / (jumlahDataTidak - 1)
+    );
+    standarDeviasiTidak.berat = Math.sqrt(
+      standarDeviasiTidak.berat / (jumlahDataTidak - 1)
+    );
+
+    standarDeviasiYa.umur = Math.sqrt(
+      standarDeviasiYa.umur / (jumlahDataYa - 1)
+    );
+    standarDeviasiYa.tinggi = Math.sqrt(
+      standarDeviasiYa.tinggi / (jumlahDataYa - 1)
+    );
+    standarDeviasiYa.berat = Math.sqrt(
+      standarDeviasiYa.berat / (jumlahDataYa - 1)
+    );
+
+    let dataPrediksi = [];
+    gabungData.forEach((item) => {
+      const { umur, tinggi, berat, stunting } = item;
+      let probabilitasTidak =
+        (1 / Math.sqrt(2 * Math.PI * standarDeviasiTidak.umur)) *
+        Math.exp(
+          -Math.pow(umur - meanTidak.umur, 2) /
+            (2 * Math.pow(standarDeviasiTidak.umur, 2))
+        ) *
+        (1 / Math.sqrt(2 * Math.PI * standarDeviasiTidak.tinggi)) *
+        Math.exp(
+          -Math.pow(tinggi - meanTidak.tinggi, 2) /
+            (2 * Math.pow(standarDeviasiTidak.tinggi, 2))
+        ) *
+        (1 / Math.sqrt(2 * Math.PI * standarDeviasiTidak.berat)) *
+        Math.exp(
+          -Math.pow(berat - meanTidak.berat, 2) /
+            (2 * Math.pow(standarDeviasiTidak.berat, 2))
+        ) *
+        probabilitasPriorTidak;
+
+      let probabilitasYa =
+        (1 / Math.sqrt(2 * Math.PI * standarDeviasiYa.umur)) *
+        Math.exp(
+          -Math.pow(umur - meanYa.umur, 2) /
+            (2 * Math.pow(standarDeviasiYa.umur, 2))
+        ) *
+        (1 / Math.sqrt(2 * Math.PI * standarDeviasiYa.tinggi)) *
+        Math.exp(
+          -Math.pow(tinggi - meanYa.tinggi, 2) /
+            (2 * Math.pow(standarDeviasiYa.tinggi, 2))
+        ) *
+        (1 / Math.sqrt(2 * Math.PI * standarDeviasiYa.berat)) *
+        Math.exp(
+          -Math.pow(berat - meanYa.berat, 2) /
+            (2 * Math.pow(standarDeviasiYa.berat, 2))
+        ) *
+        probabilitasPriorYa;
+
+      let hasil = probabilitasTidak > probabilitasYa ? "Tidak" : "Ya";
+      dataPrediksi.push({
+        umur,
+        tinggi,
+        berat,
+        stunting,
+        hasil,
+      });
+    });
+
+    let Ya = 0;
+    let Tidak = 0;
+    dataPrediksi.forEach((item) => {
+      const { stunting, hasil } = item;
+      if (stunting === hasil) {
+        Ya++;
+      } else {
+        Tidak++;
+      }
+    });
+
+    let accuracy = (Ya / (Ya + Tidak)) * 100;
+    console.log(
+      `Data Latih: ${dataLatihBaru.length} | Data Uji: ${dataUjiBaru.length} | Akurasi: ${accuracy}%`
+    );
+  }
 };
 
 module.exports = hitungProbabilitasStunting;

@@ -41,6 +41,7 @@ const getAllStuntings = async (
 
 const createStunting = async (data) => {
   return conn("stuntings").insert({
+    id: data.id,
     user_id: data.user_id,
     username: data.username,
     umur: data.umur,

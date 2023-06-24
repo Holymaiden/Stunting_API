@@ -47,8 +47,6 @@ const create = async (req, res) => {
       naive = result;
     });
 
-    console.log(naive);
-
     body.stunting = naive;
 
     const data = await createStunting(req.body);
