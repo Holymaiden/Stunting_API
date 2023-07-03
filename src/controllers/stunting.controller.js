@@ -41,8 +41,18 @@ const create = async (req, res) => {
   try {
     body = req.body;
     let naive;
+    let dataStunting = await getAllStuntings(
+      999,
+      0,
+      "created_at",
+      "DESC",
+      null,
+      null,
+      null
+    ); 
+
     await new Promise((resolve, reject) => {
-      resolve(NaiveBayes(body.umur, body.tinggi_badan, body.berat_badan));
+      resolve(NaiveBayes(body.umur, body.tinggi_badan, body.berat_badan, dataStunting));
     }).then((result) => {
       naive = result;
     });
